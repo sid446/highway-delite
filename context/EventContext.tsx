@@ -30,18 +30,23 @@ interface Event {
 
 interface EventContextType {
   events: Event[];
+  filteredEvents: Event[];
   loading: boolean;
   error: string | null;
+  searchTerm: string;
   getEventById: (id: string) => Event | undefined;
   refreshEvents: () => Promise<void>;
+  setSearchTerm: (term: string) => void;
 }
 
 const EventContext = createContext<EventContextType | undefined>(undefined);
 
 export function EventProvider({ children }: { children: ReactNode }) {
   const [events, setEvents] = useState<Event[]>([]);
+  const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const fetchEvents = async () => {
     try {
@@ -56,6 +61,7 @@ export function EventProvider({ children }: { children: ReactNode }) {
       const data = await res.json();
       console.log('Fetched events:', data);
       setEvents(data);
+      setFilteredEvents(data);
       setError(null);
     } catch (err) {
       console.error('Error fetching events:', err);
@@ -74,6 +80,23 @@ export function EventProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // Filter events whenever searchTerm changes
+  useEffect(() => {
+    if (searchTerm.trim() === '') {
+      setFilteredEvents(events);
+    } else {
+      const filtered = events.filter(event => {
+        const searchLower = searchTerm.toLowerCase();
+        return (
+          event.title.toLowerCase().includes(searchLower) ||
+          event.description.toLowerCase().includes(searchLower) ||
+          event.location.toLowerCase().includes(searchLower)
+        );
+      });
+      setFilteredEvents(filtered);
+    }
+  }, [searchTerm, events]);
+
   const getEventById = (id: string): Event | undefined => {
     return events.find(event => event._id === id);
   };
@@ -85,11 +108,14 @@ export function EventProvider({ children }: { children: ReactNode }) {
   return (
     <EventContext.Provider 
       value={{ 
-        events, 
+        events,
+        filteredEvents,
         loading, 
         error, 
+        searchTerm,
         getEventById, 
-        refreshEvents 
+        refreshEvents,
+        setSearchTerm
       }}
     >
       {children}

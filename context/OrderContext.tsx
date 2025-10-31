@@ -66,6 +66,7 @@ export function OrderProvider({ children }: { children: ReactNode }) {
 
       if (!res.ok) {
         const errorData = await res.json();
+        // Throw the error message from backend
         throw new Error(errorData.error || 'Failed to create order');
       }
 
@@ -80,7 +81,8 @@ export function OrderProvider({ children }: { children: ReactNode }) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to create order';
       console.error('Error creating order:', err);
       setError(errorMessage);
-      return null;
+      // Re-throw the error so it can be caught in the checkout page
+      throw err;
     } finally {
       setLoading(false);
     }

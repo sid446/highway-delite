@@ -1,10 +1,12 @@
+// app/checkout/page.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, AlertCircle } from 'lucide-react';
 import { useOrders } from '@/context/OrderContext';
 import Navbar from '@/components/Navbar';
+import { CheckoutSkeleton } from '@/components/EventDetailSkeleton';
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -14,17 +16,30 @@ export default function CheckoutPage() {
   const [email, setEmail] = useState('');
   const [promoCode, setPromoCode] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
-  
-  // 1. Add state to track navigation
+  const [errorMessage, setErrorMessage] = useState('');
   const [isNavigating, setIsNavigating] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // 2. Update useEffect to respect the isNavigating flag
+    // Simulate initial load time
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
     // Only redirect if there's no order AND we aren't trying to pay
-    if (!currentOrder && !isNavigating) {
+    if (!currentOrder && !isNavigating && !isLoading) {
       router.push('/');
     }
-  }, [currentOrder, router, isNavigating]); // 3. Add isNavigating to dependency array
+  }, [currentOrder, router, isNavigating, isLoading]);
+
+  // Show skeleton while loading
+  if (isLoading) {
+    return <CheckoutSkeleton />;
+  }
 
   if (!currentOrder) {
     return null;
@@ -36,17 +51,20 @@ export default function CheckoutPage() {
   };
 
   const handlePayment = async () => {
+    // Clear any previous error messages
+    setErrorMessage('');
+
     if (!fullName || !email) {
-      alert('Please fill in all required fields');
+      setErrorMessage('Please fill in all required fields');
       return;
     }
 
     if (!agreedToTerms) {
-      alert('Please agree to the terms and safety policy');
+      setErrorMessage('Please agree to the terms and safety policy');
       return;
     }
 
-    // 4. Set isNavigating to true before starting the async operation
+    // Set isNavigating to true before starting the async operation
     setIsNavigating(true);
 
     try {
@@ -71,17 +89,17 @@ export default function CheckoutPage() {
         clearCurrentOrder();
         
         // Navigate to confirmation page with ref ID
-        // The useEffect will NOT redirect to '/' because isNavigating is true
         router.push(`/confirmation?refId=${refId}`);
       } else {
-        alert('Failed to process payment. Please try again.');
-        // 5. Reset flag on failure
+        setErrorMessage('Failed to process payment. Please try again.');
         setIsNavigating(false);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Payment error:', error);
-      alert('An error occurred during payment. Please try again.');
-      // 6. Reset flag on error
+      
+      // Display the backend error message directly
+      setErrorMessage(error.message || 'An error occurred during payment. Please try again.');
+      
       setIsNavigating(false);
     }
   };
@@ -108,10 +126,31 @@ export default function CheckoutPage() {
           <span className="font-medium text-[14px]">Checkout</span>
         </button>
 
+        {/* Error Message Banner */}
+        {errorMessage && (
+          <div className="mb-6 max-w-[1174px] mx-auto">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <h3 className="text-sm font-semibold text-red-800 mb-1">
+                  Booking Error
+                </h3>
+                <p className="text-sm text-red-700">{errorMessage}</p>
+              </div>
+              <button
+                onClick={() => setErrorMessage('')}
+                className="text-red-400 hover:text-red-600 text-xl leading-none"
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* This container now centers its children */}
         <div className="flex flex-col lg:flex-row gap-8 justify-center">
           {/* Left Section - Form */}
-          <div className="space-y-4 h-fit py-[20px] px-[24px] rounded-md w-[787px] bg-[#efefef]">
+          <div className="space-y-4 h-fit py-[20px] px-[24px] rounded-md w-full max-w-[787px] bg-[#efefef]">
             {/* Name and Email Row */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Full Name */}
@@ -178,12 +217,12 @@ export default function CheckoutPage() {
           </div>
 
           {/* Right Section - Order Summary */}
-          <div className="bg-[#efefef] rounded-lg p-6 h-fit w-[387px]">
+          <div className="bg-[#efefef] rounded-lg p-6 h-fit w-full max-w-[387px] mx-auto lg:mx-0">
             <div className="space-y-4">
               {/* Experience */}
               <div className="flex justify-between">
                 <span className="text-[14px] text-gray-600">Experience</span>
-                <span className="text-[14px] font-medium text-gray-900">
+                <span className="text-[14px] font-medium text-gray-900 text-right">
                   {currentOrder.event}
                 </span>
               </div>
@@ -243,9 +282,10 @@ export default function CheckoutPage() {
               {/* Pay Button */}
               <button
                 onClick={handlePayment}
-                className="w-full h-[44px] bg-[#FFD643] text-[16px] font-medium text-gray-900 rounded-sm hover:bg-yellow-500 transition-colors mt-4"
+                disabled={isNavigating}
+                className="w-full h-[44px] bg-[#FFD643] text-[16px] font-medium text-gray-900 rounded-sm hover:bg-yellow-500 transition-colors mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Pay and Confirm
+                {isNavigating ? 'Processing...' : 'Pay and Confirm'}
               </button>
             </div>
           </div>

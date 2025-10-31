@@ -7,6 +7,7 @@ import { ArrowLeft, Minus, Plus, Loader2 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import { useEvents } from '@/context/EventContext';
 import { useOrders } from '@/context/OrderContext';
+import { EventDetailSkeleton } from '@/components/CheckoutSkeleton';
 
 interface TimeSlot {
   time: string;
@@ -94,20 +95,13 @@ export default function EventDetailPage() {
   }, [eventId, getEventById]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-yellow-400 mx-auto mb-4" />
-          <p className="text-gray-600">Loading event details...</p>
-        </div>
-      </div>
-    );
+    return <EventDetailSkeleton />;
   }
 
   if (error || !event) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
+        <div className="text-center px-4">
           <p className="text-red-500 text-xl mb-4">{error || 'Event not found'}</p>
           <button
             onClick={() => router.push('/')}
@@ -168,11 +162,11 @@ export default function EventDetailPage() {
             </button>
 
             {/* Combined Image Gallery - Horizontal Scroll */}
-            <div className="mb-6 w-full">
+            <div className="mb-6 w-full overflow-x-auto">
               <div className="">
                 <div className="flex gap-4" style={{ width: 'max-content' }}>
                   {/* Main Image First */}
-                  <div className="relative rounded-xl overflow-hidden shrink-0 w-[765px] h-[381px]">
+                  <div className="relative rounded-xl overflow-hidden shrink-0 w-[90vw] sm:w-[500px] md:w-[650px] lg:w-[765px] h-[200px] sm:h-[300px] md:h-[381px]">
                     <img
                       src={event.mainImage || 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=450&fit=crop'}
                       alt={event.title}
@@ -184,9 +178,9 @@ export default function EventDetailPage() {
             </div>
 
             {/* Title and Description */}
-            <h1 className="text-[24px] font-bold text-gray-900 mb-2">{event.title}</h1>
+            <h1 className="text-[20px] sm:text-[24px] font-bold text-gray-900 mb-2">{event.title}</h1>
             
-            <p className="text-[#6c6c6c] text-[16px] mb-6">{event.description}</p>
+            <p className="text-[#6c6c6c] text-[14px] sm:text-[16px] mb-6">{event.description}</p>
 
             {/* Choose Date */}
             <div className="mb-6">
@@ -258,17 +252,17 @@ export default function EventDetailPage() {
             </div>
 
             {/* About */}
-            <div>
+            <div className="mb-6 lg:mb-0">
               <h2 className="text-[14px] font-semibold text-gray-900 mb-3">About</h2>
-              <div className="bg-[#EEEEEE] rounded-sm h-8 w-[765px] flex items-center p-3">
+              <div className="bg-[#EEEEEE] rounded-sm min-h-8 w-full max-w-[765px] flex items-center p-3">
                 <p className="text-gray-600 text-[12px]">{event.description}</p>
               </div>
             </div>
           </div>
 
           {/* Right Section - Booking Card */}
-          <div className="lg:col-span-1 mt-10">
-            <div className="bg-[#efefef] w-[387px] h-[303px] rounded-lg  p-6 sticky top-6">
+          <div className="lg:col-span-1 lg:mt-10">
+            <div className="bg-[#efefef] w-full max-w-[387px] mx-auto lg:mx-0 min-h-[303px] rounded-lg p-6 lg:sticky lg:top-6">
               {/* Pricing Details */}
               <div className="space-y-3 mb-3">
                 <div className="flex justify-between text-[16px]">
@@ -317,7 +311,7 @@ export default function EventDetailPage() {
               {/* Confirm Button */}
               <button
                 onClick={handleConfirm}
-                className="w-[339px] h-11 bg-[#FFD643] text-[16px] hover:bg-yellow-500 text-gray-900 font-medium flex justify-center items-center rounded-sm transition-colors"
+                className="w-full max-w-[339px] mx-auto block h-11 bg-[#FFD643] text-[16px] hover:bg-yellow-500 text-gray-900 font-medium flex justify-center items-center rounded-sm transition-colors"
               >
                 Confirm
               </button>
