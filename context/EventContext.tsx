@@ -46,8 +46,8 @@ export function EventProvider({ children }: { children: ReactNode }) {
   const fetchEvents = async () => {
     try {
       setLoading(true);
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-      const res = await fetch(`${baseUrl}/api/events`);
+      
+      const res = await fetch(`/api/events`);
       
       if (!res.ok) {
         throw new Error('Failed to fetch events');

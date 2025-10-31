@@ -55,8 +55,8 @@ export function OrderProvider({ children }: { children: ReactNode }) {
       setLoading(true);
       setError(null);
 
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-      const res = await fetch(`${baseUrl}/api/order`, {
+      
+      const res = await fetch(`/api/order`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -105,12 +105,12 @@ export function OrderProvider({ children }: { children: ReactNode }) {
   const refreshOrders = async (email?: string) => {
     try {
       setLoading(true);
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+      
       
       // If email is provided, fetch only that user's orders
       const url = email 
-        ? `${baseUrl}/api/order?email=${email}`
-        : `${baseUrl}/api/order`;
+        ? `/api/order?email=${email}`
+        : `/api/order`;
       
       const res = await fetch(url);
       
