@@ -25,9 +25,9 @@ function Card({ id, image, title, location, description, price }: CardProps) {
   };
 
   return (
-    <div className='h-auto min-h-[312px] w-[280px] bg-[#F0F0F0] flex flex-col rounded-lg transition-transform hover:scale-105 cursor-pointer'>
+    <div className='h-auto min-h-[312px] w-[280px] bg-[#F0F0F0] flex flex-col rounded-lg transition-transform cursor-pointer'>
       <div 
-        className='h-[170px] w-full bg-gray-300 rounded-t-lg overflow-hidden flex-shrink-0'
+        className='h-[170px] w-full bg-gray-300 rounded-t-lg overflow-hidden shrink-0'
         onClick={handleViewDetails}
       >
         <img 
@@ -37,20 +37,20 @@ function Card({ id, image, title, location, description, price }: CardProps) {
         />
       </div>
       
-      <div className='w-full px-[10px] py-[5px]'>
+      <div className='w-full px-2.5 py-[5px]'>
         <div 
           className='w-full flex text-[#161616] justify-between p-2'
           onClick={handleViewDetails}
         >
           <span className='font-semibold text-[16px] truncate pr-2'>{title}</span>
-          <div className="h-[24px] bg-[#D6D6D6] px-2 flex justify-center items-center rounded-sm flex-shrink-0">
+          <div className="h-6 bg-[#D6D6D6] px-2 flex justify-center items-center rounded-sm shrink-0">
             <span className='text-[11px] whitespace-nowrap'>{displayLocation}</span>
           </div>
         </div>
 
-        <div className='w-full p-2 mb-[12px]'>
+        <div className='w-full p-2 mb-3'>
           <span 
-            className={`text-[#6C6C6C] text-[12px] leading-[14px] cursor-pointer ${
+            className={`text-[#6C6C6C] text-[12px] leading-3.5 cursor-pointer ${
               isDescriptionExpanded ? '' : 'line-clamp-2'
             }`}
             onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
@@ -65,7 +65,7 @@ function Card({ id, image, title, location, description, price }: CardProps) {
           </h4>
           <button 
             onClick={handleViewDetails}
-            className="bg-[#FFD643] text-[#161616] h-[30px] w-[99px] text-[14px] flex justify-center items-center rounded-sm hover:bg-[#F5CC3D] transition-colors"
+            className="bg-[#FFD643] text-[#161616] h-[30px] w-[99px] text-[14px] flex justify-center items-center rounded-sm hover:bg-[#F5CC3D] hover:text-gray-800 transition-colors"
           >
             View Details
           </button>

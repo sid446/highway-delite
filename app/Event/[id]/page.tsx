@@ -3,8 +3,10 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, MapPin, Minus, Plus, Loader2 } from 'lucide-react';
+import { ArrowLeft, Minus, Plus, Loader2 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
+import { useEvents } from '@/context/EventContext';
+import { useOrders } from '@/context/OrderContext';
 
 interface TimeSlot {
   time: string;
@@ -36,6 +38,8 @@ export default function EventDetailPage() {
   const router = useRouter();
   const eventId = params.id as string;
 
+  const { getEventById } = useEvents();
+  const { setCurrentOrder } = useOrders();
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -47,21 +51,35 @@ export default function EventDetailPage() {
   const taxRate = 0.09;
 
   useEffect(() => {
-    async function fetchEvent() {
+    async function loadEvent() {
       try {
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-        const res = await fetch(`${baseUrl}/api/events/${eventId}`);
+        setLoading(true);
+        
+        // First, try to get from context
+        const cachedEvent = getEventById(eventId);
+        
+        if (cachedEvent) {
+          console.log('Event loaded from context');
+          setEvent(cachedEvent);
+          if (cachedEvent.upcomingDates?.[0]?.timeSlots?.[0]) {
+            setSelectedTime(cachedEvent.upcomingDates[0].timeSlots[0].time);
+          }
+        } else {
+          // If not in context, fetch from API
+          console.log('Fetching event from API');
+          const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+          const res = await fetch(`${baseUrl}/api/events/${eventId}`);
 
-        if (!res.ok) {
-          throw new Error('Failed to fetch event details');
-        }
+          if (!res.ok) {
+            throw new Error('Failed to fetch event details');
+          }
 
-        const data = await res.json();
-        setEvent(data);
+          const data = await res.json();
+          setEvent(data);
 
-        // Set default selected time from first available time slot
-        if (data.upcomingDates?.[0]?.timeSlots?.[0]) {
-          setSelectedTime(data.upcomingDates[0].timeSlots[0].time);
+          if (data.upcomingDates?.[0]?.timeSlots?.[0]) {
+            setSelectedTime(data.upcomingDates[0].timeSlots[0].time);
+          }
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
@@ -71,9 +89,9 @@ export default function EventDetailPage() {
     }
 
     if (eventId) {
-      fetchEvent();
+      loadEvent();
     }
-  }, [eventId]);
+  }, [eventId, getEventById]);
 
   if (loading) {
     return (
@@ -113,9 +131,29 @@ export default function EventDetailPage() {
 
   const selectedDate = event.upcomingDates[selectedDateIndex];
 
+  const handleConfirm = () => {
+    if (!selectedTime) {
+      alert('Please select a time slot');
+      return;
+    }
+
+    // Set the current order in context
+    setCurrentOrder({
+      event: event.title,
+      eventId: event._id,
+      selectedDate: selectedDate.date,
+      selectedTime: selectedTime,
+      quantity: quantity,
+      totalPrice: total
+    });
+
+    // Navigate to checkout
+    router.push('/checkout');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
-        <Navbar/>
+      <Navbar/>
       <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Left Section */}
@@ -134,15 +172,13 @@ export default function EventDetailPage() {
               <div className="">
                 <div className="flex gap-4" style={{ width: 'max-content' }}>
                   {/* Main Image First */}
-                  <div className="relative rounded-xl overflow-hidden flex-shrink-0 w-[765px] h-[381px]">
+                  <div className="relative rounded-xl overflow-hidden shrink-0 w-[765px] h-[381px]">
                     <img
                       src={event.mainImage || 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=450&fit=crop'}
                       alt={event.title}
                       className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer"
                     />
                   </div>
-                  
-                 
                 </div>
               </div>
             </div>
@@ -161,15 +197,14 @@ export default function EventDetailPage() {
                     key={index}
                     onClick={() => {
                       setSelectedDateIndex(index);
-                      // Reset selected time to first available slot
                       if (dateObj.timeSlots[0]) {
                         setSelectedTime(dateObj.timeSlots[0].time);
                       }
                     }}
-                    className={`h-[34px] w-[69px]   font-medium transition-all ${
+                    className={`h-[34px] w-[69px] font-medium transition-all ${
                       selectedDateIndex === index
-                        ? ' bg-[#FFD643] border-0 border-[#FFD643] text-gray-900'
-                        : ' bg-white border-2 border-zinc-300 text-zinc-400 hover:border-gray-300'
+                        ? 'bg-[#FFD643] border-0 border-[#FFD643] text-gray-900'
+                        : 'bg-white border-2 border-zinc-300 text-zinc-400 hover:border-gray-300'
                     }`}
                   >
                     {formatDate(dateObj.date)}
@@ -191,7 +226,7 @@ export default function EventDetailPage() {
                       key={index}
                       onClick={() => !isSoldOut && setSelectedTime(timeSlot.time)}
                       disabled={isSoldOut}
-                      className={`px-3 h-[34px]  border-2 font-medium transition-all text-[14px] relative ${
+                      className={`px-3 h-[34px] border-2 font-medium transition-all text-[14px] relative ${
                         selectedTime === timeSlot.time && !isSoldOut
                           ? 'border-yellow-400 bg-yellow-400 text-gray-900'
                           : !isSoldOut
@@ -225,39 +260,37 @@ export default function EventDetailPage() {
             {/* About */}
             <div>
               <h2 className="text-[14px] font-semibold text-gray-900 mb-3">About</h2>
-              <div className="bg-[#EEEEEE] rounded-sm h-[32px] w-[765px] flex items-center p-3">
+              <div className="bg-[#EEEEEE] rounded-sm h-8 w-[765px] flex items-center p-3">
                 <p className="text-gray-600 text-[12px]">{event.description}</p>
               </div>
             </div>
           </div>
 
           {/* Right Section - Booking Card */}
-          <div className="lg:col-span-1">
-            <div className="bg-white w-[387px] h-[303px] rounded-2xl shadow-lg p-6 sticky top-6">
-              
-
+          <div className="lg:col-span-1 mt-10">
+            <div className="bg-[#efefef] w-[387px] h-[303px] rounded-lg  p-6 sticky top-6">
               {/* Pricing Details */}
               <div className="space-y-3 mb-3">
                 <div className="flex justify-between text-[16px]">
-                  <span className="text-gray-600 ">Starts at</span>
-                  <span className=" text-gray-900">₹{event.price}</span>
+                  <span className="text-gray-600">Starts at</span>
+                  <span className="text-gray-900">₹{event.price}</span>
                 </div>
 
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Quantity</span>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
                     <button
                       onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      className="w-8 h-8 rounded-lg border border-gray-300 flex items-center justify-center hover:bg-gray-50"
+                      className="w-6 h-6 rounded-lg border border-gray-300 text-black flex items-center justify-center hover:bg-gray-50"
                     >
                       <Minus className="w-4 h-4" />
                     </button>
-                    <span className=" text-gray-900 w-4 text-center">
+                    <span className="text-gray-900 w-4 text-center">
                       {quantity}
                     </span>
                     <button
                       onClick={() => setQuantity(quantity + 1)}
-                      className="w-8 h-8 rounded-lg border border-gray-300 flex items-center justify-center hover:bg-gray-50"
+                      className="w-6 h-6 rounded-lg border border-gray-300 text-black flex items-center justify-center hover:bg-gray-50"
                     >
                       <Plus className="w-4 h-4" />
                     </button>
@@ -266,12 +299,12 @@ export default function EventDetailPage() {
 
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Subtotal</span>
-                  <span className=" text-gray-900">₹{subtotal}</span>
+                  <span className="text-gray-900">₹{subtotal}</span>
                 </div>
 
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Taxes</span>
-                  <span className=" text-gray-900">₹{taxes}</span>
+                  <span className="text-gray-900">₹{taxes}</span>
                 </div>
               </div>
 
@@ -283,18 +316,8 @@ export default function EventDetailPage() {
 
               {/* Confirm Button */}
               <button
-                onClick={() => {
-                  // Handle booking confirmation
-                  console.log('Booking:', {
-                    eventId: event._id,
-                    date: selectedDate.date,
-                    time: selectedTime,
-                    quantity,
-                    total,
-                  });
-                  alert('Booking functionality to be implemented!');
-                }}
-                className="w-[339px] h-[44px] bg-[#D7D7D7] text-[16px] hover:bg-yellow-500 text-[#7F7F7F]  flex justify-center items-center rounded-sm transition-colors"
+                onClick={handleConfirm}
+                className="w-[339px] h-11 bg-[#FFD643] text-[16px] hover:bg-yellow-500 text-gray-900 font-medium flex justify-center items-center rounded-sm transition-colors"
               >
                 Confirm
               </button>

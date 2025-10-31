@@ -36,5 +36,5 @@ const orderSchema = new Schema({
 
 }, { timestamps: true }); // Adds createdAt and updatedAt automatically
 
-const Order = mongoose.model("Order", orderSchema);
+const Order = mongoose.model("Order123", orderSchema);
 export default Order;
