@@ -44,7 +44,7 @@ export default function EventPageSkeleton() {
       
 
       {/* Cards Grid */}
-      <div className="flex flex-wrap justify-center items-start gap-6 mt-12 px-[124px]">
+      <div className="flex flex-wrap justify-center items-start gap-6 mt-8 px-[124px]">
         {[1, 2, 3, 4, 5, 6, 7, 8].map((index) => (
           <CardSkeleton key={index} />
         ))}
