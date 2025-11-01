@@ -41,13 +41,7 @@ export default function EventPageSkeleton() {
     <div className="bg-white min-h-screen w-full">
      
       
-      <div className="px-4 sm:px-8 lg:px-[124px] mt-6">
-        {/* Search info skeleton */}
-        <div className="mb-4 animate-pulse">
-          <div className="h-4 bg-gray-300 rounded w-64 mb-2"></div>
-          <div className="h-3 bg-gray-300 rounded w-24"></div>
-        </div>
-      </div>
+      
 
       {/* Cards Grid */}
       <div className="flex flex-wrap justify-center items-start gap-6 mt-12">
