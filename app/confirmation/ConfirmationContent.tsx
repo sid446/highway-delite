@@ -2,10 +2,17 @@
 
 import React from 'react';
 import { Check } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 
+
 export default function ConfirmationContent() {
+  const router = useRouter();
   const refId = 'HUF568SO';
+
+  const handleBackToHome = () => {
+    router.push('/');
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -31,7 +38,10 @@ export default function ConfirmationContent() {
           </p>
 
           {/* Back to Home Button */}
-          <button className="px-6 sm:px-8 py-2.5 sm:py-3 bg-[#FFD643] text-[#161616] text-sm sm:text-base font-medium rounded hover:bg-[#FFC700] transition-colors active:scale-95">
+          <button 
+            onClick={handleBackToHome} 
+            className="px-6 sm:px-8 py-2.5 sm:py-3 bg-[#FFD643] text-[#161616] text-sm sm:text-base font-medium rounded hover:bg-[#FFC700] transition-colors active:scale-95"
+          >
             Back to Home
           </button>
         </div>
