@@ -33,24 +33,13 @@ function CardSkeleton() {
   );
 }
 
-// Navbar Skeleton
-function NavbarSkeleton() {
-  return (
-    <nav className="bg-white border-b border-gray-200 px-4 sm:px-8 lg:px-[124px] py-4">
-      <div className="flex justify-between items-center">
-        <div className="h-8 bg-gray-300 rounded w-32 animate-pulse"></div>
-        <div className="h-10 bg-gray-200 rounded w-64 animate-pulse"></div>
-        <div className="h-8 bg-gray-300 rounded w-24 animate-pulse"></div>
-      </div>
-    </nav>
-  );
-}
+
 
 // Main Page Component
 export default function EventPageSkeleton() {
   return (
     <div className="bg-white min-h-screen w-full">
-      <NavbarSkeleton />
+     
       
       <div className="px-4 sm:px-8 lg:px-[124px] mt-6">
         {/* Search info skeleton */}
